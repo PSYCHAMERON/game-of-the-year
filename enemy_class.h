@@ -1,3 +1,4 @@
+#pragma once
 
 class player_class;
 
@@ -11,6 +12,7 @@ class enemy_class {
 private:
     uint height;
     uint width;
+    uint screen_height, screen_width;
 
     string enemy_string[4];
     vector<position_class> shots;
@@ -19,7 +21,7 @@ private:
     int enemy_health; // health of the enemy ship
     bool limit(int row, int col)
     {
-        if(row < 1 || row >= 59 || col < 1 || col >= 54) return false;
+        if(row < 1 || row >= screen_height-1 || col < 1 || col >=  screen_width /*54*/) return false;
         return true;
     }
 
@@ -28,7 +30,7 @@ public:
     bool gone_out;
     position_class head;
 
-    enemy_class(const position_class& pos);
+    enemy_class(const position_class& pos, uint s_width, uint s_height);
     void update_enemy(screen_class& screen);
     void move_enemy();
     void fire_shot();
@@ -42,7 +44,8 @@ public:
     friend int collision_result(player_class& player, enemy_class& enemy); // friend to both classes
 };
 //================================//end of enemy_class\\================================//
-enemy_class::enemy_class(const position_class& pos)
+enemy_class::enemy_class(const position_class& pos, uint s_width, uint s_height)
+:screen_width(s_width), screen_height(s_height)
 {
 /*
 [[[O]]]
@@ -55,7 +58,7 @@ enemy_class::enemy_class(const position_class& pos)
     enemy_destroyed = false;
 
     head = pos;
-    enemy_health = 15;
+    enemy_health = 9;
 
     enemy_string[0] = "|"; // down to up
     enemy_string[1] = "\\o/";
@@ -90,7 +93,6 @@ void enemy_class::update_enemy(screen_class& screen)
 void enemy_class::move_enemy()
 {
     if(enemy_destroyed) return;
-    if(enemy_destroyed) return;
     head.row++;
 }
 //================================//end\\================================//
@@ -98,7 +100,7 @@ void enemy_class::fire_shot()
 {
     if(enemy_destroyed) return;
 
-    if(head.row < 59)
+    if(head.row < screen_height - 1)
     {
         //cout << "pushing row: " << head.row; getch();
         shots.push_back(head); // if head is in the screen
@@ -115,7 +117,7 @@ void enemy_class::update_shots(screen_class& screen)
     {
         shots[i].row++; // shots go down
 
-        if(shots[i].row != 59) screen[ shots[i].row ][ shots[i].col ] = 'o';
+        if(shots[i].row != screen_height - 1) screen[ shots[i].row ][ shots[i].col ] = 'o';
         else
         {
             /*cout << "erasing row: " << (*(shots.begin() + i)).row<< endl; getch();

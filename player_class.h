@@ -1,3 +1,7 @@
+#pragma once
+#include "position_class.h"
+#include "enemy_class.h"
+
 class enemy_class;
 
 /*
@@ -11,6 +15,9 @@ class player_class {
 private:
     uint width;// = 9;
     uint height;// = 5;
+    uint screen_width; // 55
+    uint screen_height; // 60
+
 
     string player_string[5];
     int player_health;
@@ -21,7 +28,7 @@ private:
 
     bool limit(int row, int col)
     {
-        if(row < 1 || row >= 59 || col < 1 || col >= 54) return false;
+        if(row < 1 || row >= screen_height-1 || col < 1 || col >=  screen_width /*54*/) return false;
         return true;
     }
 public:
@@ -30,7 +37,7 @@ public:
 
     bool player_destroyed;
 
-    player_class(); // constructor
+    player_class(int s_width = 55, int s_height = 60); // constructor
 
     void fire_shot(); // fire weapon
     void update_shots(screen_class& screen); // update the shots
@@ -70,7 +77,8 @@ void player_class::update_player(screen_class& screen)
     } // end of for
 }
 //================================//end\\================================//
-player_class::player_class()
+player_class::player_class(int s_width, int s_height)
+    : screen_width(s_width), screen_height(s_height)
 {
 /*
     |
@@ -83,8 +91,8 @@ player_class::player_class()
     height = 5;
 
     player_destroyed = false;
-    player_health = 15;
-    head = position_class(54, 27); // in the middle of the screen
+    player_health = 7;
+    head = position_class(screen_height - height - 5, screen_width / 2); // in the middle of the screen
 
     player_string[0] = "|";
     player_string[1] = "/#\\";
@@ -96,18 +104,20 @@ player_class::player_class()
 void player_class::move_player(screen_class& screen, const string& direction)
 {
     if(player_destroyed) return;
-
     position_class change;
+    int movement_speed = 2;
 
-    if(direction == "left") change = position_class(0, -2);
-    else if(direction == "right") change = position_class(0, 2);
-    else if(direction == "up") change = position_class(-2, 0);
-    else if(direction == "down") change = position_class(2, 0);
+    if(direction == "left") change = position_class(0, -movement_speed);
+    else if(direction == "right") change = position_class(0, movement_speed);
+    else if(direction == "up") change = position_class(-movement_speed, 0);
+    else if(direction == "down") change = position_class(movement_speed, 0);
 
-    if ( limit(head.row + change.row, head.col + change.col) && (head.row + change.row) != 56 )
+    if ( limit(head.row + change.row, head.col + change.col)  )
     {                                                           // ^ don't let any part of the player go down
         head.row = head.row + change.row;
         head.col = head.col + change.col;
+        int kek = screen_height - height - 1;
+        if(head.row > kek) head.row = kek;
     } // end of if
 }
 //================================//end\\================================//
@@ -160,7 +170,7 @@ void player_class::update_special_shots(screen_class& screen)
 
         if(special_shots[i] == 0) dele.push_back(special_shots[i]);
         else
-        for(int j = 1; j <= 53; j++) screen[ special_shots[i] ] [j] = '_'; // goes along the rows
+        for(int j = 1; j <= screen_width - 2; j++) screen[ special_shots[i] ] [j] = '_'; // goes along the rows
 
     }
 

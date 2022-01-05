@@ -1,4 +1,4 @@
-
+#pragma once
 // this class is so 'cold' that it freezes things
 class delayClass {
     clock_t startTime, curTime;

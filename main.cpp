@@ -16,25 +16,20 @@ using namespace std;
 //================================//begin of main\\================================//
 int main()
 {
-
-    cout << "PLEASE MAXIMIZE THE SCREEN...                                             ^";
+    cout << "PLEASE MAXIMIZE THE SCREEN...                                             ";
     cout << "\nPREES ANY KEY...";
     getch();
     cls;
 
     game_control game;
-
     game.welcome();
 
     cls;
     char choice;
 
-
-
     while(true)
     {
         game.play_game();
-
         cout << "GAME OVER\n";
 
         do{
@@ -52,7 +47,6 @@ int main()
     } // end of while
 
     cout << "\nGOOD BYE...";
-
     while(true) getch();
 
     return 0;

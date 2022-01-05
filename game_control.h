@@ -1,5 +1,9 @@
+#pragma once
 
 vector<explosion_class> explosions; // stores the explosions
+
+int _screen_width_ = 70;
+int _screen_height_ = 40;
 
 class game_control {
 private:
@@ -8,7 +12,6 @@ private:
     vector<enemy_class> enemies;
 
     delayClass delay;
-
     uint num_of_enemies;
     ullint score;
     ullint high_score;
@@ -30,7 +33,7 @@ private:
     {
         if(h <= 0) { cout << "!!! DESTROYED !!!"; return; }
         for(int i = 0; i < h; i++) cout << "#";
-        if(h <= 5) cout << "     !!! DANGER CLOSE !!!";
+        if(h <= 3) cout << "     !!! DANGER CLOSE !!!";
     }
     void print_life()
     {
@@ -47,7 +50,8 @@ public:
     void play_game();
 };
 //================================//end of game_control\\================================//
-game_control::game_control() : screen(), player(), delay() // constructor
+game_control::game_control()
+    : screen(_screen_width_, _screen_height_), player(_screen_width_, _screen_height_), delay() // constructor
 {
     srand(time(NULL));
 
@@ -57,9 +61,9 @@ game_control::game_control() : screen(), player(), delay() // constructor
     life = 1;
     score = 0;
     begin_score = 0;
-    enemy_shot_interval = 30;
+    enemy_shot_interval = 20;
 
-    num_of_enemies = 2;
+    num_of_enemies = 3;
 }
 //================================//end\\================================//
 position_class game_control::get_enemy_pos()
@@ -69,7 +73,7 @@ position_class game_control::get_enemy_pos()
 
     while(true)
     {
-        c = (rand() % 47) + 4;
+        c = (rand() % (_screen_width_ - 7)) + 4;
         done = true;
 
         for(int i = 0; i < enemies.size(); i++)
@@ -95,7 +99,7 @@ void game_control::enemy_control()
     {
         if(enemies[i].enemy_destroyed) score += 5;
 
-        if(enemies[i].enemy_destroyed || enemies[i].head.row > 61) dele.push_back(enemies[i]);
+        if(enemies[i].enemy_destroyed || enemies[i].head.row > _screen_height_ + 1) dele.push_back(enemies[i]);
     } // end of for
 
     for(int i = 0; i < dele.size(); i++)
@@ -110,11 +114,12 @@ void game_control::enemy_control()
     // add needed enemies
     for(int i = 0 ; i < needed; i++)
     {
-        enemies.push_back( enemy_class( get_enemy_pos() ) );
+        enemies.push_back( enemy_class( get_enemy_pos(), _screen_width_, _screen_height_ ) );
     }
     ////////////////////////////////
 }
 //================================//end\\================================//
+
 void game_control::play_game()
 {
     int move_update = 0;
@@ -127,17 +132,15 @@ void game_control::play_game()
     while(life >= 0)
     {
         cout << screen;
+        //getch();
 
-        cout << "SCORE: " << score << "                   PREVIOUS HIGH SCORE: "  << high_score <<  '\n';
-
+        cout << "SCORE: " << score << "                     PREVIOUS HIGH SCORE: "  << high_score <<  '\n';
         cout << "\nHEALTH: "; print_health( player.get_health() );
-
         cout << "\n\nLIFE LEFT: "; print_life();
-        cout << "\n\nPRIMARY WEAPON: INFINITY           SECONDARY WEAPON: " << num_of_special_shots;
+        cout << "\n\nPRIMARY WEAPON: INFINITY               SECONDARY WEAPON: " << num_of_special_shots;
 
         player.update_player(screen);
-
-        delay.freeze(0.1); delay.resetTimer();
+        delay.freeze(0.007); delay.resetTimer();
 
         if(kbhit())
         {
@@ -212,7 +215,7 @@ void game_control::play_game()
         } // end of if
         if(player.player_destroyed && temp == 10) // time to use the next life, if any remaining
         {
-            player = player_class();
+            player = player_class(_screen_width_, _screen_height_);
             life--; // costs one life
             temp = 0; // reset
         }
@@ -220,6 +223,7 @@ void game_control::play_game()
         move_update++;
         shot_update++;
         level_control();
+
     } // end of while
 
     save_high_score(); // save high score
@@ -256,7 +260,7 @@ void game_control::level_control()
     level = score/50 + 1; // every 50 score will raise the level by 1
 
 
-    num_of_enemies = level + 1;
+    num_of_enemies = 4;
     enemy_shot_interval = 30 - (level - 1) * 5; // and also their shot interval will be reduced
 
     /*if(level == 2) {
@@ -268,7 +272,6 @@ void game_control::level_control()
 //================================//end\\================================//
 void game_control::welcome()
 {
-    cout << "\n\n\n\n\n\n\n\n\n                PAGLAGHORA GAMES presents...\n\n";
     cout << "                             GAME OF THE YEAR :p\n\n\n\n";
 
     delay.resetTimer();
@@ -297,7 +300,6 @@ void game_control::load_high_score()
     }
 
     fin >> high_score; // read the high score
-
     fin.close();
 }
 //================================//end\\================================//
@@ -308,7 +310,6 @@ void game_control::save_high_score()
     ofstream fout("D://game.dat");
 
     fout << score;
-
     fout.close();
 }
 //================================//end\\================================//
@@ -332,7 +333,8 @@ int collision_result(player_class& player, enemy_class& enemy)
 
                 if(player.player_health <= 0)
                 {  // player is destroyed
-                    explosions.push_back( position_class( player.head.row + 2, player.head.col ) );
+                    position_class explosion_position = position_class( player.head.row + 2, player.head.col );
+                    explosions.push_back( explosion_class( explosion_position, _screen_width_, _screen_height_ ) );
 
                     player.player_body.clear();
                     player.player_destroyed = true;
@@ -356,7 +358,8 @@ int collision_result(player_class& player, enemy_class& enemy)
 
                 if(enemy.enemy_health <= 0)
                 { // enemy is destroyed
-                    explosions.push_back( position_class(enemy.head.row-2, enemy.head.col) );
+                    position_class explosion_position = position_class(enemy.head.row-2, enemy.head.col);
+                    explosions.push_back( explosion_class( explosion_position, _screen_width_, _screen_height_ ) );
 
                     enemy.enemy_body.clear();
                     enemy.enemy_destroyed = true;
@@ -378,14 +381,16 @@ int collision_result(player_class& player, enemy_class& enemy)
                 //cout << "\a";
                 if(player.player_health <= 0)
                 {  // player is destroyed
-                    explosions.push_back( position_class( player.head.row + 2, player.head.col ) );
+                    position_class explosion_position = position_class( player.head.row + 2, player.head.col );
+                    explosions.push_back( explosion_class( explosion_position, _screen_width_, _screen_height_ ) );
 
                     player.player_body.clear();
                     player.player_destroyed = true;
                 }
                 if(enemy.enemy_health <= 0)
                 { // enemy is destroyed
-                    explosions.push_back( position_class(enemy.head.row-2, enemy.head.col) );
+                    position_class explosion_position = position_class(enemy.head.row-2, enemy.head.col);
+                    explosions.push_back( explosion_class( explosion_position, _screen_width_, _screen_height_ ) );
 
                     enemy.enemy_body.clear();
                     enemy.enemy_destroyed = true;
@@ -420,7 +425,8 @@ int collision_result(player_class& player, enemy_class& enemy)
 
                 enemy.enemy_health = 0;
 
-                explosions.push_back( position_class(enemy.head.row-2, enemy.head.col) );
+                position_class explosion_position = position_class(enemy.head.row-2, enemy.head.col);
+                explosions.push_back( explosion_class( explosion_position, _screen_width_, _screen_height_ ) );
 
                 enemy.enemy_body.clear();
                 enemy.enemy_destroyed = true;

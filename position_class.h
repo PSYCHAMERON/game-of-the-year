@@ -1,4 +1,4 @@
-
+#pragma once
 class position_class {
 public:
     int row, col;
